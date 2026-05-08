@@ -1,26 +1,25 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home'; // <-- Tambahkan import ini
+import Home from './pages/Home';
+import Checkout from './pages/Checkout';
+import Payment from './pages/Payment';
+import { CartProvider } from './context/CartContext';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Rute untuk Pelanggan */}
-        <Route path="/" element={<Home />} /> {/* <-- Ganti bagian ini */}
-        
-        <Route path="/checkout" element={
-          <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-            <h1>Form Pemesanan (PO)</h1>
-          </div>
-        } />
-
-        <Route path="/admin" element={
-          <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-            <h1>Dashboard Admin</h1>
-          </div>
-        } />
-      </Routes>
-    </BrowserRouter>
+    <CartProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/admin" element={
+            <div className="p-8 font-sans">
+              <h1 className="text-2xl font-bold">Dashboard Admin</h1>
+            </div>
+          } />
+        </Routes>
+      </BrowserRouter>
+    </CartProvider>
   );
 }
 

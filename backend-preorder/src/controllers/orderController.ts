@@ -3,9 +3,9 @@ import prisma from '../config/database.js';
 import { buildReceiptPDF } from '../services/pdfService.js';
 
 // Fitur Membuat Pesanan Baru (Checkout)
-export const createOrder = async (req: Request, res: Response) => {
+export const createOrder = async (req: Request, res: Response): Promise<any> => {
   try {
-    // 1. Menerima data dari form pembeli (sesuai nama di database)
+    // 1. Menerima data dari form pembeli
     const { customerName, whatsappNumber, address, items } = req.body;
     
     // 2. Menghitung Total Belanjaan
@@ -17,8 +17,31 @@ export const createOrder = async (req: Request, res: Response) => {
     // 3. Menghitung DP 50%
     const dpAmount = totalAmount / 2;
 
-    // 4. Membuat Nomor Invoice Otomatis (Contoh: INV-1683948302)
-    const invoiceNumber = `INV-${Date.now()}`;
+    // ==========================================
+    // 4. MEMBUAT NOMOR INVOICE BERURUTAN
+    // ==========================================
+    // Cari pesanan terakhir di database berdasarkan ID tertinggi
+    const lastOrder = await prisma.order.findFirst({
+      orderBy: { id: 'desc' }
+    });
+
+    let nextNumber = 1; // Default jika database masih kosong
+    
+    if (lastOrder && lastOrder.invoiceNumber.startsWith('INV-')) {
+      // Ambil angka dari invoice terakhir (Misal: dari "INV-001" ambil "001")
+      const lastNumberStr = lastOrder.invoiceNumber.replace('INV-', '');
+      const lastNumber = parseInt(lastNumberStr, 10);
+      
+      // Jika berhasil diubah jadi angka, tambahkan 1
+      if (!isNaN(lastNumber)) {
+        nextNumber = lastNumber + 1;
+      }
+    }
+
+    // Ubah angka jadi format 3 digit dengan nol di depan (001, 002, 015, 120)
+    const paddedNumber = nextNumber.toString().padStart(3, '0');
+    const invoiceNumber = `INV-${paddedNumber}`;
+    // ==========================================
 
     // 5. Menyimpan data ke tabel Order DAN OrderItem sekaligus!
     const newOrder = await prisma.order.create({
@@ -29,18 +52,16 @@ export const createOrder = async (req: Request, res: Response) => {
         address: address,
         totalAmount: totalAmount,
         dpAmount: dpAmount,
-        // Status otomatis menggunakan default "Menunggu Pembayaran" dari schema
-        
-        items: { // <-- Menggunakan 'items' sesuai schema relasi Anda
+        items: { 
           create: items.map((item: any) => ({
             productId: item.productId,
             quantity: item.quantity,
-            subtotal: item.price * item.quantity // <-- Menggunakan 'subtotal'
+            subtotal: item.price * item.quantity
           }))
         }
       },
       include: {
-        items: true // Meminta Prisma mengembalikan data detail item juga
+        items: true 
       }
     });
 
@@ -137,5 +158,34 @@ export const downloadReceipt = async (req: Request, res: Response): Promise<any>
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Gagal membuat struk PDF", error });
+  }
+};
+
+export const cancelOrder = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { invoiceNumber } = req.params;
+
+    // PERBAIKAN DI SINI: Gunakan String(invoiceNumber) agar TypeScript tenang
+    const existingOrder = await prisma.order.findFirst({
+      where: { invoiceNumber: String(invoiceNumber) } 
+    });
+
+    if (!existingOrder) {
+      return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: existingOrder.id },
+      data: { status: 'CANCELLED' }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Pesanan berhasil dibatalkan',
+      data: updatedOrder
+    });
+  } catch (error) {
+    console.error("Gagal membatalkan pesanan:", error);
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server' });
   }
 };
