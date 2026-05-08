@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../api/axios';
+import Swal from 'sweetalert2';
 import { Star, MessageSquare, User, Hash, Send } from 'lucide-react';
 
 const SubmitReview = () => {
@@ -27,7 +28,15 @@ const SubmitReview = () => {
       setFormData({ productId: '', customerName: '', rating: 5, comment: '' });
     } catch (error) {
       console.error("Gagal mengirim ulasan:", error);
-      alert("Gagal mengirim ulasan.");
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Gagal mengirim ulasan. Coba periksa kembali ID Produk Anda.',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors'
+        }
+      });
     } finally {
       setLoading(false);
     }

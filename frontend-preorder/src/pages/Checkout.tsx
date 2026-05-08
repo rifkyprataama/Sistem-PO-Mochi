@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { CartContext } from '../context/CartContext';
 import { ArrowLeft, ShoppingCart, User, Phone, MapPin, CheckCircle } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -72,7 +73,15 @@ const Checkout = () => {
       clearCart();
     } catch (error) {
       console.error("Gagal membuat pesanan:", error);
-      alert("Terjadi kesalahan sistem. Silakan coba lagi.");
+      Swal.fire({
+        icon: 'error',
+        title: 'Pesanan Gagal',
+        text: 'Terjadi kesalahan sistem saat memproses pesanan. Silakan coba lagi.',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: 'bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-6 rounded-lg transition-colors'
+        }
+      });
     } finally {
       setLoading(false);
     }
