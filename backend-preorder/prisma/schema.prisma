@@ -1,0 +1,88 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Tabel Admin
+model Admin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+// 2. Tabel Produk
+model Product {
+  id            Int         @id @default(autoincrement())
+  name          String
+  description   String      @db.Text
+  price         Int
+  imageUrl      String?
+  poCloseDate   DateTime
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  
+  // Relasi
+  orderItems    OrderItem[]
+  reviews       Review[]
+}
+
+// 3. Tabel Transaksi / Order
+model Order {
+  id             Int         @id @default(autoincrement())
+  invoiceNumber  String      @unique
+  customerName   String
+  whatsappNumber String
+  address        String      @db.Text
+  totalAmount    Int
+  dpAmount       Int
+  status         String      @default("Menunggu Pembayaran")
+  createdAt      DateTime    @default(now())
+  
+  // Relasi
+  items          OrderItem[]
+  payments       Payment[]
+}
+
+// 4. Tabel Detail Item Pesanan
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  subtotal  Int
+
+  // Relasi
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+// 5. Tabel Pembayaran (Upload Bukti)
+model Payment {
+  id             Int      @id @default(autoincrement())
+  orderId        Int
+  proofImageUrl  String
+  paymentStatus  String   @default("Menunggu Validasi")
+  uploadedAt     DateTime @default(now())
+
+  // Relasi
+  order          Order    @relation(fields: [orderId], references: [id])
+}
+
+// 6. Tabel Ulasan & Rating
+model Review {
+  id           Int      @id @default(autoincrement())
+  productId    Int
+  customerName String
+  rating       Int
+  comment      String   @db.Text
+  isPublished  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  // Relasi
+  product      Product  @relation(fields: [productId], references: [id])
+}
