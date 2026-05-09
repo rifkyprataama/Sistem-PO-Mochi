@@ -1,6 +1,8 @@
-import { ShoppingBag, ShieldCheck, Star, ThumbsUp } from 'lucide-react';
+import { ShoppingBag, ShieldCheck, Star, ThumbsUp, MessageSquare } from 'lucide-react';
 import Catalog from './Catalog';
-import SubmitReview from './SubmitReview';
+// IMPORT DUA KOMPONEN BARU KITA (Sesuaikan path-nya jika folder Anda berbeda)
+import CustomerReviews from '../components/CustomerReviews';
+import ReviewForm from '../components/ReviewForm';
 
 const Home = () => {
   // Fungsi untuk scroll halus ke bagian katalog
@@ -56,24 +58,32 @@ const Home = () => {
           <div className="w-24 h-1 bg-emerald-500 mx-auto rounded-full"></div>
         </div>
         
-        {/* Kita panggil file Catalog.tsx di sini agar muncul di bawah Home */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-10">
           <Catalog />
         </div>
       </section>
 
-      {/* 3. SECTION ULASAN (Form Review) */}
+      {/* 3. SECTION MENAMPILKAN ULASAN (Testimoni Pelanggan) */}
+      <section id="testimoni-section" className="py-16 px-6 bg-white border-t border-slate-200">
+        <div className="max-w-6xl mx-auto">
+          <CustomerReviews />
+        </div>
+      </section>
+
+      {/* 4. SECTION MENGISI ULASAN (Review Form) */}
       <section id="review-section" className="py-16 px-6 bg-slate-100 border-t border-slate-200">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-10 text-center">
-            <h2 className="text-3xl font-bold text-slate-800 mb-3">Tinggalkan Ulasan</h2>
-            <div className="w-24 h-1 bg-blue-500 mx-auto rounded-full"></div>
+          <div className="mb-10 text-center flex flex-col items-center">
+            <div className="bg-blue-100 text-blue-600 p-4 rounded-full mb-4">
+              <MessageSquare size={32} />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-800 mb-3">Pesanan Anda Sudah Sampai?</h2>
+            <div className="w-24 h-1 bg-blue-500 mx-auto rounded-full mb-4"></div>
+            <p className="text-slate-500">Bantu pelanggan lain dengan membagikan pengalaman Anda berbelanja di toko kami.</p>
           </div>
           
-          {/* Kita panggil file SubmitReview.tsx di sini agar muncul di bawah Katalog */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-10">
-            <SubmitReview />
-          </div>
+          {/* Form Ulasan versi Terbaru yang meminta Nomor Invoice */}
+          <ReviewForm />
         </div>
       </section>
 

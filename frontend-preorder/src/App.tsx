@@ -11,6 +11,7 @@ import DashboardOverview from './pages/admin/DashboardOverview';
 import Login from './pages/admin/Login'; // <-- Import halaman login
 import ProtectedRoute from './components/ProtectedRoute'; // <-- Import si Gembok
 import OrderManagement from './pages/admin/OrderManagement';
+import ReviewManagement from './pages/admin/ReviewManagement';
 
 function App() {
   return (
@@ -47,6 +48,14 @@ function App() {
          <ProtectedRoute>
            <AdminLayout>
              <OrderManagement />
+           </AdminLayout>
+         </ProtectedRoute>
+       } />
+
+       <Route path="/admin/reviews" element={
+         <ProtectedRoute>
+           <AdminLayout>
+             <ReviewManagement />
            </AdminLayout>
          </ProtectedRoute>
        } />
