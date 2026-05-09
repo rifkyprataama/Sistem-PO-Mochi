@@ -75,15 +75,21 @@ export const createOrder = async (req: Request, res: Response): Promise<any> => 
   }
 };
 
-// Fitur Menampilkan Semua Pesanan (Untuk Admin melihat orderan masuk)
+// Fitur Mengambil Semua Pesanan (Untuk Admin)
 export const getOrders = async (req: Request, res: Response) => {
   try {
     const orders = await prisma.order.findMany({
+      // PERBAIKAN: Beritahu Prisma untuk menarik relasi antar tabel
       include: {
-        items: true // Tampilkan juga detail barang apa saja yang dibeli
+        items: {
+          include: {
+            product: true // Menarik nama dan harga dari tabel Product!
+          }
+        }
       },
-      orderBy: { createdAt: 'desc' } // Urutkan dari pesanan paling baru
+      orderBy: { createdAt: 'desc' }
     });
+    
     res.status(200).json(orders);
   } catch (error) {
     res.status(500).json({ message: "Gagal mengambil data pesanan", error });

@@ -6,7 +6,6 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 
-// 1. IMPORT MESIN CRON JOB DI SINI (Gunakan akhiran .js menyesuaikan format Anda)
 import { initCronJobs } from './services/cronService.js';
 
 const app = express();
@@ -15,21 +14,20 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// Rute Uji Coba Dasar
+// BUKA PINTU UNTUK FOLDER UPLOADS
+// Baris ini membuat file gambar bisa diakses dari URL: http://localhost:5000/uploads/namafile.png
+app.use('/uploads', express.static('uploads')); 
+
 app.get('/', (req: Request, res: Response) => {
   res.send('Halo! Server Backend Sistem PO UMKM sudah berhasil berjalan! 🚀');
 });
 
-// Daftarkan Rute Produk di sini!
-// Artinya: Semua alamat yang diawali "/api/products" akan diarahkan ke productRoutes
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewRoutes);
 
-// 2. NYALAKAN MESIN CRON JOB DI SINI
-// Dipanggil sebelum app.listen agar langsung siaga saat server berjalan
 initCronJobs();
 
 app.listen(PORT, () => {

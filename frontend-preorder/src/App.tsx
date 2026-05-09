@@ -10,6 +10,7 @@ import AdminLayout from './layouts/AdminLayout';
 import DashboardOverview from './pages/admin/DashboardOverview';
 import Login from './pages/admin/Login'; // <-- Import halaman login
 import ProtectedRoute from './components/ProtectedRoute'; // <-- Import si Gembok
+import OrderManagement from './pages/admin/OrderManagement';
 
 function App() {
   return (
@@ -41,6 +42,14 @@ function App() {
               </AdminLayout>
             </ProtectedRoute>
           } />
+
+          <Route path="/admin/orders" element={
+         <ProtectedRoute>
+           <AdminLayout>
+             <OrderManagement />
+           </AdminLayout>
+         </ProtectedRoute>
+       } />
           
         </Routes>
       </BrowserRouter>
