@@ -1,10 +1,13 @@
-// src/routes/adminRoutes.ts
 import express from 'express';
-import { registerAdmin, loginAdmin } from '../controllers/adminController.js';
+import { loginAdmin, getDashboardStats } from '../controllers/adminController.js';
+import { verifyToken } from '../middlewares/authMiddleware.js'; // Satpam token
 
 const router = express.Router();
 
-router.post('/register', registerAdmin); // <-- Cukup '/register'
-router.post('/login', loginAdmin);       // <-- Cukup '/login'
+// Rute Login (Pintu Terbuka, karena Admin butuh masuk pertama kali)
+router.post('/login', loginAdmin);
+
+// Rute Mengambil Data Statistik (Pintu Tergembok, wajib bawa token dari frontend)
+router.get('/stats', verifyToken, getDashboardStats);
 
 export default router;

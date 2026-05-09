@@ -1,65 +1,78 @@
 import { Request, Response } from 'express';
-import prisma from '../config/database.js';
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import prisma from '../config/database.js';
 
-// 1. Fitur Membuat Akun Admin (Daftar)
-export const registerAdmin = async (req: Request, res: Response): Promise<any> => {
+// 1. FITUR LOGIN ADMIN
+export const loginAdmin = async (req: Request, res: Response): Promise<any> => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    // Cek apakah email sudah dipakai
-    const existingAdmin = await prisma.admin.findUnique({ where: { email } });
-    if (existingAdmin) {
-      return res.status(400).json({ message: "Email sudah terdaftar!" });
+    // Memanggil username dan password dari "Brankas Rahasia" (.env)
+    const validUsername = process.env.ADMIN_USERNAME;
+    const validPassword = process.env.ADMIN_PASSWORD;
+
+    // Jika .env belum dikonfigurasi, tolak akses demi keamanan
+    if (!validUsername || !validPassword) {
+      console.error("CRITICAL ERROR: ADMIN_USERNAME atau ADMIN_PASSWORD belum diatur di .env!");
+      return res.status(500).json({ success: false, message: "Konfigurasi server tidak lengkap." });
     }
 
-    // Mengacak (Hash) Password sebelum disimpan ke database
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // Mencocokkan inputan dengan data di .env
+    if (username === validUsername && password === validPassword) {
+      // Jika cocok, buatkan Token Kunci yang berlaku selama 1 hari (24h)
+      const token = jwt.sign(
+        { role: 'superadmin', username: username }, 
+        process.env.JWT_SECRET || 'rahasia_negara_123',
+        { expiresIn: '24h' }
+      );
 
-    await prisma.admin.create({
-      data: {
-        email: email,
-        password: hashedPassword
-      }
-    });
+      return res.status(200).json({
+        success: true,
+        message: "Login berhasil",
+        token: token
+      });
+    }
 
-    res.status(201).json({ message: "Akun Admin berhasil dibuat!" });
+    // Jika salah password/username
+    return res.status(401).json({ success: false, message: "Username atau Password salah!" });
+
   } catch (error) {
-    res.status(500).json({ message: "Gagal membuat akun admin", error });
+    console.error("Error saat login:", error);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan server." });
   }
 };
 
-// 2. Fitur Login Admin
-export const loginAdmin = async (req: Request, res: Response): Promise<any> => {
+// 2. FITUR MENGAMBIL DATA STATISTIK DASHBOARD (Tetap sama seperti sebelumnya)
+export const getDashboardStats = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
-
-    // Cari admin berdasarkan email
-    const admin = await prisma.admin.findUnique({ where: { email } });
-    if (!admin) {
-      return res.status(404).json({ message: "Email tidak ditemukan!" });
-    }
-
-    // Cocokkan password yang diketik dengan password acak di database
-    const isPasswordMatch = await bcrypt.compare(password, admin.password);
-    if (!isPasswordMatch) {
-      return res.status(400).json({ message: "Password salah!" });
-    }
-
-    // Jika cocok, buatkan Tiket (Token JWT) yang berlaku selama 1 hari
-    const token = jwt.sign(
-      { id: admin.id, email: admin.email }, 
-      process.env.JWT_SECRET as string, 
-      { expiresIn: '1d' }
-    );
-
-    res.status(200).json({ 
-      message: "Login berhasil!", 
-      token: token 
+    const totalOrders = await prisma.order.count();
+    const pendingOrders = await prisma.order.count({
+      where: { status: 'PENDING' }
     });
+    const uniqueCustomers = await prisma.order.groupBy({
+      by: ['whatsappNumber'],
+    });
+    const totalCustomers = uniqueCustomers.length;
+    const successfulOrders = await prisma.order.findMany({
+      where: {
+        status: { in: ['DIPROSES', 'SELESAI'] }
+      },
+      select: { totalAmount: true }
+    });
+    const totalRevenue = successfulOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalOrders,
+        pendingOrders,
+        totalCustomers,
+        totalRevenue
+      }
+    });
+
   } catch (error) {
-    res.status(500).json({ message: "Gagal melakukan login", error });
+    console.error("Gagal mengambil statistik:", error);
+    res.status(500).json({ success: false, message: "Gagal memuat data dashboard" });
   }
 };
