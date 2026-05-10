@@ -7,3 +7,9 @@ dist/
 
 # File konfigurasi OS yang tidak perlu
 .DS_Store
+
+# Abaikan semua foto di folder uploads
+uploads/*
+
+# TAPI jangan abaikan file .gitkeep ini!
+!uploads/.gitkeep
